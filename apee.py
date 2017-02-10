@@ -391,6 +391,7 @@ if __name__ == "__main__":
     # La fenêtre principale
     w = Tk()
     w.title("Apee : éditeur de métadonnées Exif pour photos archéologiques")
+    w.configure(bg="#002B36")
 
     # La barre de menu
     menu = MenuBar()
@@ -438,7 +439,7 @@ if __name__ == "__main__":
                                                                                                    column=2, sticky=E)
 
     # Boutons de choix d'image, d'écriture des tags définis et de sortie
-    Button(ctlframe, text="Enregistrer", pady=5, takefocus=0, command=lambda: set_tags(img_path)).grid(row=6, column=1)
+    Button(ctlframe, text="Enregistrer", pady=5, takefocus=1, command=lambda: set_tags(img_path)).grid(row=6, column=1)
     # Forcer la taille de la dernière ligne
     ctlframe.rowconfigure(7, minsize=410)
     Button(ctlframe, text="Ouvrir...", pady=5, takefocus=0, command=lambda: choose_img()).grid(row=7,
@@ -449,5 +450,13 @@ if __name__ == "__main__":
                                                                                                        sticky=S)
     Button(ctlframe, text="Quitter", pady=5, takefocus=0, command=lambda: quitter()).grid(row=7, column=2,
                                                                                           sticky=SE)
+
+    # Contrôle clavier
+    w.bind("<Left>", lambda e: navigate("prev"))
+    w.bind("<Right>", lambda e: navigate("next"))
+    w.bind("<Control - q>", lambda e: quitter())
+    w.bind("<Control - s>", lambda e: set_tags(img_path))
+    w.bind("<Control - o>", lambda e: choose_img())
+    w.bind("<Control - O>", lambda e: choose_dir())
 
     w.mainloop()
