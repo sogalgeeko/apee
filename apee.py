@@ -212,6 +212,8 @@ def resize_img(image):
             x = int((x * 600) / y)
             y = 600
         image = image.resize((x, y), Image.ANTIALIAS)
+    # Après redimensionnement, l'image (son conteneur) doit toujours rester centrée verticalement
+    imgcan.pack_configure(ipady=600 - y)
     return image
 
 
@@ -263,8 +265,13 @@ def delete_img(path):
         name = os.path.basename(path)
         if messagebox.askokcancel("Supprimer l'image", "Voulez-vous vraiment supprimer " + name + " ?",
                                   icon="warning"):
-            # On affiche l'image suivante
-            navigate("next")
+            if len(img_list) > 1:
+                # On affiche l'image suivante
+                navigate("next")
+            else:
+                # Sauf si la liste n'en contenait qu'une
+                imgcan.configure(image="")
+                img_name.configure(text="")
             # On sort l'image à supprimer de la liste
             img_list.pop(img_list.index(path))
             # Puis on l'efface
@@ -307,28 +314,29 @@ def navigate(sens):
     """Permet de naviguer dans la liste des images contenues dans le dossier choisi"""
     global img_path
     global img_list
-    print(img_list)
-    # On vérifie qu'il y a plus d'une seule image dans la liste
-    if len(img_list) > 1:
-        # On récupère la position de l'image active dans la liste
-        img_index = img_list.index(img_path)
-        if sens == "prev":
-            img_pos = img_index - 1
-            if img_pos < 0:
-                img_pos = len(img_list) - 1
-        elif sens == "next":
-            img_pos = img_index + 1
-            if img_pos > len(img_list) - 1:
-                img_pos = 0
-        # L'image active est celle occupant la nouvelle position
-        img_path = (img_list[img_pos])
-    clean_tag_entries()
-    # S'il s'avère que l'image active n'est pas vraiment une image ( mimetype != image), on passe à la suivante
-    if not_mimetype(img_path) == 1:
-        navigate("next")
-    else:
-        # Si c'est bon, on l'affiche
-        show_img(img_path)
+    # On vérifie qu'il reste des images dans la liste (utile après suppression de la dernière image d'un dossier)
+    if len(img_list) > 0:
+        # On vérifie qu'il y a plus d'une seule image dans la liste
+        if len(img_list) > 1:
+            # On récupère la position de l'image active dans la liste
+            img_index = img_list.index(img_path)
+            if sens == "prev":
+                img_pos = img_index - 1
+                if img_pos < 0:
+                    img_pos = len(img_list) - 1
+            elif sens == "next":
+                img_pos = img_index + 1
+                if img_pos > len(img_list) - 1:
+                    img_pos = 0
+            # L'image active est celle occupant la nouvelle position
+            img_path = (img_list[img_pos])
+        clean_tag_entries()
+        # S'il s'avère que l'image active n'est pas vraiment une image ( mimetype != image), on passe à la suivante
+        if not_mimetype(img_path) == 1:
+            navigate("next")
+        else:
+            # Si c'est bon, on l'affiche
+            show_img(img_path)
 
 
 def set_tags(path):
@@ -399,6 +407,7 @@ if __name__ == "__main__":
 
     # La fenêtre principale
     w = Tk()
+    w.resizable(width=False, height=False)
     w.title("Apee : éditeur de métadonnées Exif pour photos archéologiques")
     w.configure(bg="#002B36")
 
