@@ -203,10 +203,15 @@ def not_mimetype(file):
 
 def resize_img(image):
     """Redimensionne l'image au côté max de son conteneur"""
-    # TODO : améliorer ça pour coserver le ratio de l'image
     x, y = image.size[0], image.size[1]
     if x > 800 or y > 600:
-        image = image.resize((800, 600), Image.ANTIALIAS)
+        if x > y:
+            y = int((800 * y) / x)
+            x = 800
+        else:
+            x = int((x * 600) / y)
+            y = 600
+        image = image.resize((x, y), Image.ANTIALIAS)
     return image
 
 
@@ -223,7 +228,11 @@ def get_tags(path):
         if tag not in metadata.exif_keys:
             metadata[tag] = ""
     # On les affiche dans les boîtes Entry correspondantes après formatage
-    date_entry.v.set(metadata[b].value.strftime('%A %d %B %Y'))
+    # Si la date est vide, impossible de la formater, la valeur du champ reste vide
+    try:
+        date_entry.v.set(metadata[b].value.strftime('%A %d %B %Y'))
+    except:
+        date_entry.v.set("")
     auteur_entry.v.set(metadata[a].value)
     descrip_entry.v.set(metadata[d].value)
     # Si le commentaire est composé de valeurs au format .csv (liées par des ;)
@@ -272,7 +281,7 @@ def show_img(path):
     """Affiche l'image redimensionnée et ses infos, noms et tags Exif"""
     # Choisir l'image
     img1 = Image.open(path)
-    # La redimensionner
+    # La redimensionner si nécessaire
     imgr = resize_img(img1)
     # Créer un objet Image
     img2 = ImageTk.PhotoImage(imgr)
