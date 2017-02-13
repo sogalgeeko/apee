@@ -46,7 +46,7 @@ class MenuBar(Frame):
         # Partie déroulante, on y ajoute les entrées
         me1 = Menu(file_menu)
         me1.add_command(label="Ouvrir une image", underline=0, command=choose_img)
-        me1.add_command(label="Ouvrir un dossier", underline=0, command=choose_dir)
+        me1.add_command(label="Ouvrir un dossier", underline=0, command=lambda: choose_dir(1))
         me1.add_command(label="Quitter", underline=0, command=quitter)
         me2 = Menu(chantier_menu)
         me2.add_command(label="Éditer les tags communs", underline=0, command=launch_global_tagger)
@@ -92,10 +92,10 @@ class GlobalTagger(Toplevel):
 
     def open_dir(self):
         """Sélectionner un dossier racine, afficher son nom"""
-        choose_dir()
+        choose_dir(0)
         self.gchantier_name.configure(text=os.path.basename(img_dir))
 
-    def tag_recursively(self, *args):
+    def tag_recursively(self):
         """Parcourir le dossier récursivement et appliquer les tags sur chaque fichier"""
         global img_dir
         # On parcourt le dossier à la recherche de fichiers
@@ -116,11 +116,28 @@ class GlobalTagger(Toplevel):
         messagebox.showinfo("Opération terminée", "Les photos ont été correctement étiquetées.")
 
 
+class Aide(Toplevel):
+    """Sous fenêtre d'aide"""
+
+    def __init__(self):
+        # Constructeur de la classe sous-fenêtre Tk
+        Toplevel.__init__(self)
+        self.title("Aide")
+
+        self.aide = Label(self, takefocus=0, text=self.get_help(), justify=LEFT)
+        self.aide.pack()
+
+    def get_help(self):
+        """Lire le fichier README et l'afficher"""
+        with open("HELP.txt", "r") as f:
+            help_text = f.read()
+
+        return help_text
+
+
 def show_help():
-    """Affiche l'aide dans une boîte de dialogue"""
-    # TODO : rédiger l'aide
-    messagebox.showinfo("Aide", "Ce logiciel permet de visualiser une image et ses metadonnées.\n\
-Elle peuvent être changées")
+    """Affiche l'aide dans une sous-fenêtre"""
+    Aide()
 
 
 def show_about():
@@ -136,14 +153,14 @@ def launch_global_tagger():
     GlobalTagger()
 
 
-def choose_dir():
+def choose_dir(show):
     """Choisir et mémoriser le dossier racine contenant les images à traiter"""
     img_extensions = ('.png', '.PNG', '.jpg', '.JPG')
     global img_dir
     global img_path
     global img_list
     img_list = []
-    img_dir = filedialog.askdirectory(initialdir=(os.path.expanduser("~/")), title="Choisir le dossier contenant les\
+    img_dir = filedialog.askdirectory(initialdir=(os.path.expanduser("~/")), title="Choisir le dossier contenant les \
 images du chantier", mustexist=True)
     # On vérifie qu'un dossier a bien été sélectionné
     if img_dir:
@@ -154,8 +171,9 @@ images du chantier", mustexist=True)
         # On filtre la liste pour ne garder que les images
         img_list = ["{}".format(i) for i in img_list if os.path.splitext(i)[1] in img_extensions]
         img_path = img_list[0]
-        # On affiche la première image de la liste
-        show_img(img_path)
+        # On affiche la première image de la liste si nécessaire
+        if show == 1:
+            show_img(img_path)
 
         return img_list
     else:
@@ -314,6 +332,7 @@ def navigate(sens):
     """Permet de naviguer dans la liste des images contenues dans le dossier choisi"""
     global img_path
     global img_list
+    img_pos = 0
     # On vérifie qu'il reste des images dans la liste (utile après suppression de la dernière image d'un dossier)
     if len(img_list) > 0:
         # On vérifie qu'il y a plus d'une seule image dans la liste
@@ -354,11 +373,12 @@ def set_tags(path):
 
 def csv_export():
     """Choisir le dossier contenant les photos, lire les tags, les exporter dans un fichier .csv"""
-    photos_list = choose_dir()
-    messagebox.showinfo("Export CSV", "Export en cours, veuillez patienter, un message vous informera \n\
-de la bonne fin des opérations")
+    photos_list = choose_dir(0)
 
     if img_dir:
+
+        messagebox.showinfo("Export CSV", "Export en cours, veuillez patienter, un message vous informera \n\
+de la bonne fin des opérations")
 
         def write_tags():
             """Fonction principale d'export des tags dans un fichier"""
@@ -423,6 +443,7 @@ if __name__ == "__main__":
     # Le conteneur qui contiendra l'image affichée
     imgcan = Label(imgframe, background="#444444", text="Choisissez une image pour l'afficher ici", image="")
     imgcan.pack()
+    imgcan.pack_configure(ipady=600)
 
     # Le cadre de droite qui contient les éléments de contrôle
     ctlframe = Frame(w, bd=1, padx=5, pady=5)
@@ -474,7 +495,7 @@ if __name__ == "__main__":
     w.bind("<Right>", lambda e: navigate("next"))
     w.bind("<Control - q>", lambda e: quitter())
     w.bind("<Control - s>", lambda e: set_tags(img_path))
-    w.bind("<Control - o>", lambda e: choose_img())
-    w.bind("<Control - O>", lambda e: choose_dir())
+    w.bind("<Control - o>", lambda e: choose_img(1))
+    w.bind("<Control - O>", lambda e: choose_dir(0))
 
     w.mainloop()
