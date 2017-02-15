@@ -429,7 +429,10 @@ if __name__ == "__main__":
     w = Tk()
     w.resizable(width=False, height=False)
     w.title("Apee : éditeur de métadonnées Exif pour photos archéologiques")
-    w.configure(bg="#002B36")
+
+    # Icône du logiciel
+    ico = PhotoImage(file="/usr/local/share/apee/apee.png")
+    w.call('wm', 'iconphoto', w, ico)
 
     # La barre de menu
     menu = MenuBar()

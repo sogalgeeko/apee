@@ -1,0 +1,17 @@
+[Desktop Entry]
+Name=Apee
+GenericName=Archo Pictures Exif Editor
+GenericName[fr]=Editeur de tags pour photos archéologiques
+X-GNOME-FullName=Apee Photo Tags Editor
+X-GNOME-FullName[fr]=Visionneur d'images Apee
+Comment=Visualiser et tagger vos photos de chantier
+Comment[fr]=Visualiser et tagger vos photos de chantier
+Keywords=Image;Viewer;
+Keywords[fr]=Image;Visionneur;
+Categories=GNOME;GTK;Graphics;Viewer;RasterGraphics;2DGraphics;Photography;
+Exec=/usr/bin/python3.4 /usr/local/bin/apee.py
+Icon=/usr/local/share/apee/apee.svg
+MimeType=image/jpeg;image/png;
+StartupNotify=true
+Terminal=false
+Type=Application
