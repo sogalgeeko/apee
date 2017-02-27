@@ -144,8 +144,9 @@ def show_about():
     """Affiche la licence et le contact de l'auteur de ce logiciel"""
     messagebox.showinfo("À propos de ce logiciel", "Ce logiciel a été écrit pour le personnel d'Éveha.\n\
 Il est diffusé sous la licence libre GNU GPLv3 ou supérieure.\n\n\
-Auteur : Sébastien POHER\n\
-Contact : sebastien.poher@eveha.fr")
+Auteur  : Sébastien POHER\n\
+Contact : sebastien.poher@eveha.fr\n\
+Version : 0.2")
 
 
 def launch_global_tagger():
