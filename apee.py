@@ -432,7 +432,8 @@ if __name__ == "__main__":
     w.title("Apee : éditeur de métadonnées Exif pour photos archéologiques")
 
     # Icône du logiciel
-    ico = PhotoImage(file="/usr/local/share/apee/apee.png")
+    ico = PhotoImage(file="apee.png")
+    #ico = PhotoImage(file="/usr/local/share/apee/apee.png")
     w.call('wm', 'iconphoto', w, ico)
 
     # La barre de menu
