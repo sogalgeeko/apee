@@ -4,8 +4,10 @@
 import mimetypes
 import threading
 import os
+import csv
 from tkinter import *
 from tkinter import filedialog, messagebox
+from datetime import datetime
 
 import pyexiv2
 from PIL import Image, ImageTk
@@ -144,8 +146,8 @@ def show_about():
     """Affiche la licence et le contact de l'auteur de ce logiciel"""
     messagebox.showinfo("À propos de ce logiciel", "Ce logiciel a été écrit pour le personnel d'Éveha.\n\
 Il est diffusé sous la licence libre GNU GPLv3 ou supérieure.\n\n\
-Auteur  : Sébastien POHER\n\
-Contact : sebastien.poher@eveha.fr\n\
+Auteur  : sogal\n\
+Contact : sogal@opensuse.org\n\
 Version : 0.2")
 
 
@@ -158,10 +160,14 @@ def choose_dir(show):
     """Choisir et mémoriser le dossier racine contenant les images à traiter"""
     img_extensions = ('.png', '.PNG', '.jpg', '.JPG')
     global img_dir
+    if img_dir != "":
+        open_dir = img_dir
+    else:
+        open_dir = os.path.expanduser("~/")
     global img_path
     global img_list
     img_list = []
-    img_dir = filedialog.askdirectory(initialdir=(os.path.expanduser("~/")), title="Choisir le dossier contenant les \
+    img_dir = filedialog.askdirectory(initialdir=(open_dir), title="Choisir le dossier contenant les \
 images du chantier", mustexist=True)
     # On vérifie qu'un dossier a bien été sélectionné
     if img_dir:
@@ -186,11 +192,12 @@ images du chantier", mustexist=True)
 def choose_img():
     """Ouvre un dialogue permettant de choisir une image dont le chemin est renvoyé"""
     img_extensions = ('.png', '.PNG', '.jpg', '.JPG')
+    global img_dir
     global img_list
     img_list = []
     global img_path
     img_path = filedialog.askopenfilename(initialdir=(os.path.expanduser(
-        "~/Images")), filetypes=[('Images', img_extensions), ('Tout', '.*')],
+        img_dir)), filetypes=[('Images', img_extensions), ('Tout', '.*')],
         title="Image à ouvrir", parent=w)
     # On vérifie qu'une image a été choisie
     if img_path:
@@ -383,34 +390,33 @@ de la bonne fin des opérations")
 
         def write_tags():
             """Fonction principale d'export des tags dans un fichier"""
-            # Création d'un descripteur de fichier permettant d'ouvrir un fichier relativement à un répertoire donné
-            dir_fd = os.open(img_dir, os.O_RDONLY)
-
-            def opener(path, flags):
-                return os.open(path, flags, dir_fd=dir_fd)
 
             # Ouverture du fichier listing.csv dans le dossier 'img_dir'
-            with open("listing.csv", 'w', opener=opener) as f:
+            with open(img_dir+"/listing.csv", 'w', newline='') as f:
+                listing_csv = csv.writer(f, delimiter=',')
                 # On passe chaque photo en revue
                 for photo in photos_list:
                     photo_tags_list = []
-                    photo_tags_list.append(photo)
                     metadata = pyexiv2.ImageMetadata(photo)
                     metadata.read()
                     # On vérifie que les tags demandés existent bien dans les photos
                     for tag in ["Exif.Image.Artist",
                                 "Exif.Image.ImageDescription",
+                                "Exif.Photo.DateTimeOriginal",
                                 "Exif.Photo.UserComment"]:
                         # Si oui on insère leur valeur dans une liste...
                         if tag in metadata.exif_keys:
-                            photo_tags_list.append(metadata[tag].value)
-                    for i in photo_tags_list:
-                        # Que l'on parcourt pour écrire chaque dans le fichier ouvert
-                        print(i, end=";", file=f)
-                    # Retour à la ligne forcé entre chaque photo
-                    print("", file=f)
-            # Et on ferme proprement notre descripteur de fichier
-            os.close(dir_fd)
+                             if tag == "Exif.Photo.DateTimeOriginal":
+                                 old_date = metadata[tag].value
+                                 new_date = datetime.strptime(
+                                     str(old_date), '%Y-%m-%d %H:%M:%S').strftime(
+                                        '%d/%m/%Y %H:%M:%S')
+                                 photo_tags_list.append(new_date)
+                             else:
+                                 photo_tags_list.append(metadata[tag].value)
+                    listing_csv.writerow([os.path.dirname(photo)] +
+                                         [os.path.basename(photo)] +
+                                         photo_tags_list)
             messagebox.showinfo("Export CSV", "Export des métadonnées vers listing.csv terminé.")
 
         # Création d'un thread parallèle pour que l'application ne paraisse pas "freezée" lors de longs exports
@@ -430,6 +436,19 @@ if __name__ == "__main__":
     w = Tk()
     w.resizable(width=False, height=False)
     w.title("Apee : éditeur de métadonnées Exif pour photos archéologiques")
+
+    # Tk Call pour forcer l'ajout d'un filtre pour "dot{file,dir}"
+    try:
+        # Tentative d'initialisation d'un dialogue factice pour pouvoir passer les
+        # variables qui vont bien
+        try:
+            w.tk.call('tk_getOpenFile', '-foobar')
+        except TclError:
+            pass
+        w.tk.call('set', '::tk::dialog::file::showHiddenBtn', '1')
+        w.tk.call('set', '::tk::dialog::file::showHiddenVar', '0')
+    except:
+        pass
 
     # Icône du logiciel
     ico = PhotoImage(file="apee.png")

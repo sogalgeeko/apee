@@ -1,0 +1,32 @@
+--- apee.py	2017-08-29 11:06:00.204959094 +0200
++++ apee.py.rpm	2017-08-29 11:15:08.234101728 +0200
+@@ -129,7 +129,7 @@
+ 
+     def get_help(self):
+         """Lire le fichier README et l'afficher"""
+-        with open("HELP.txt", "r") as f:
++        with open("/usr/local/share/apee/HELP.txt", "r") as f:
+             help_text = f.read()
+ 
+         return help_text
+@@ -144,8 +144,8 @@
+     """Affiche la licence et le contact de l'auteur de ce logiciel"""
+     messagebox.showinfo("À propos de ce logiciel", "Ce logiciel a été écrit pour le personnel d'Éveha.\n\
+ Il est diffusé sous la licence libre GNU GPLv3 ou supérieure.\n\n\
+-Auteur  : sogal\n\
+-Contact : sogal@volted.net\n\
++Auteur  : Sébastien POHER\n\
++Contact : sebastien.poher@eveha.fr\n\
+ Version : 0.2")
+ 
+ 
+@@ -451,8 +451,7 @@
+         pass
+ 
+     # Icône du logiciel
+-    ico = PhotoImage(file="apee.png")
+-    #ico = PhotoImage(file="/usr/local/share/apee/apee.png")
++    ico = PhotoImage(file="/usr/local/share/apee/apee.png")
+     w.call('wm', 'iconphoto', w, ico)
+ 
+     # La barre de menu
